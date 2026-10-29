@@ -25,6 +25,8 @@
 		<ModDataDir>../data/</ModDataDir>
 		<ModOutRoot>../out/</ModOutRoot>
 		<ModOutDir>$(ModOutRoot)$(MSBuildProjectName)/</ModOutDir>
+		<ModPreviewSource>../art/preview.svg</ModPreviewSource>
+		<RequirePreview Condition="'$(RequirePreview)' == ''">false</RequirePreview>
 
 		<CombatExtendedDir>$(BaseIntermediateOutputPath)CombatExtended/$(CombatExtendedVersion)/</CombatExtendedDir>
 		<CombatExtendedDll>$(CombatExtendedDir)CombatExtended/Assemblies/CombatExtended.dll</CombatExtendedDll>
@@ -75,7 +77,34 @@
 		<Copy SourceFiles="@(_ModAssembly)" DestinationFolder="$(ModOutDir)%(RimWorldVersion)/Assemblies/" />
 	</Target>
 
-	<Target Name="Zip" DependsOnTargets="ReadModVersion;Package">
+	<Target Name="RenderPreview" AfterTargets="Package">
+		<Exec Command="command -v rsvg-convert" IgnoreExitCode="true" StandardOutputImportance="low">
+			<Output TaskParameter="ExitCode" PropertyName="_RsvgConvertExitCode" />
+		</Exec>
+		<Exec Command="fc-list -q &quot;Inter Display:medium&quot;" IgnoreExitCode="true">
+			<Output TaskParameter="ExitCode" PropertyName="_InterMediumExitCode" />
+		</Exec>
+		<Exec Command="fc-list -q &quot;Inter Display:extrabold&quot;" IgnoreExitCode="true">
+			<Output TaskParameter="ExitCode" PropertyName="_InterExtraBoldExitCode" />
+		</Exec>
+		<ItemGroup>
+			<_PreviewProblem Include="rsvg-convert not found" Condition="'$(_RsvgConvertExitCode)' != '0'" />
+			<_PreviewProblem Include="font Inter Display Medium not found" Condition="'$(_InterMediumExitCode)' != '0'" />
+			<_PreviewProblem Include="font Inter Display ExtraBold not found" Condition="'$(_InterExtraBoldExitCode)' != '0'" />
+		</ItemGroup>
+
+		<Error Condition="'@(_PreviewProblem)' != '' And '$(RequirePreview)' == 'true'" Text="Can't render the preview: @(_PreviewProblem, ', ')" />
+		<Warning Condition="'@(_PreviewProblem)' != '' And '$(RequirePreview)' != 'true'" Text="Building without About/Preview.png: @(_PreviewProblem, ', ')" />
+		<Exec Condition="'@(_PreviewProblem)' == ''" Command="rsvg-convert &quot;$(ModPreviewSource)&quot; -o &quot;$(ModOutDir)About/Preview.png&quot;" />
+	</Target>
+
+	<Target Name="_RequirePreview">
+		<PropertyGroup>
+			<RequirePreview>true</RequirePreview>
+		</PropertyGroup>
+	</Target>
+
+	<Target Name="Zip" DependsOnTargets="_RequirePreview;ReadModVersion;Package">
 		<PropertyGroup>
 			<_ModZipStageDir>$(BaseIntermediateOutputPath)zip/</_ModZipStageDir>
 		</PropertyGroup>
