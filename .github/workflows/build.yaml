@@ -1,0 +1,19 @@
+---
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/cache@v6
+        with:
+          path: src/obj/*/CombatExtended
+          key: combatextended-${{ hashFiles('src/CELoadoutQualityControls.csproj') }}
+      - name: Build
+        run: dotnet build src -c Release
