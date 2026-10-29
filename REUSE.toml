@@ -1,6 +1,6 @@
 version = 1
 
 [[annotations]]
-path = [".github/**", ".gitignore", "README.md", "data/**", "src/*.csproj"]
+path = [".github/**", ".gitignore", "README.md", "data/**", "src/*.csproj", "steam/**"]
 SPDX-FileCopyrightText = "2026 ddbb07"
 SPDX-License-Identifier = "MIT"
