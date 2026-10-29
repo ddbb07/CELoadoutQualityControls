@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 ddbb07
+//
+// SPDX-License-Identifier: MIT
+
 using Verse;
 
 namespace CELoadoutQualityControls;
