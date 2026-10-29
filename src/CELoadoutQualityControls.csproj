@@ -23,7 +23,8 @@
 		<DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes>
 
 		<ModDataDir>../data/</ModDataDir>
-		<ModOutDir>../out/$(MSBuildProjectName)/</ModOutDir>
+		<ModOutRoot>../out/</ModOutRoot>
+		<ModOutDir>$(ModOutRoot)$(MSBuildProjectName)/</ModOutDir>
 
 		<CombatExtendedDir>$(BaseIntermediateOutputPath)CombatExtended/$(CombatExtendedVersion)/</CombatExtendedDir>
 		<CombatExtendedDll>$(CombatExtendedDir)CombatExtended/Assemblies/CombatExtended.dll</CombatExtendedDll>
@@ -69,7 +70,7 @@
 			<Output TaskParameter="TargetOutputs" ItemName="_ModAssembly" />
 		</MSBuild>
 
-		<RemoveDir Directories="$(ModOutDir)" />
+		<RemoveDir Directories="$(ModOutRoot)" />
 		<Copy SourceFiles="@(_ModData)" DestinationFolder="$(ModOutDir)%(RecursiveDir)" />
 		<Copy SourceFiles="@(_ModAssembly)" DestinationFolder="$(ModOutDir)%(RimWorldVersion)/Assemblies/" />
 	</Target>
@@ -84,7 +85,7 @@
 
 		<RemoveDir Directories="$(_ModZipStageDir)" />
 		<Copy SourceFiles="@(_ModFile)" DestinationFolder="$(_ModZipStageDir)$(MSBuildProjectName)/%(RecursiveDir)" />
-		<ZipDirectory SourceDirectory="$(_ModZipStageDir)" DestinationFile="../out/$(MSBuildProjectName)-v$(Version).zip" Overwrite="true" />
+		<ZipDirectory SourceDirectory="$(_ModZipStageDir)" DestinationFile="$(ModOutRoot)$(MSBuildProjectName)-v$(Version).zip" Overwrite="true" />
 	</Target>
 
 </Project>
