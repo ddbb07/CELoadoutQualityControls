@@ -41,10 +41,11 @@ class WorkshopItem(BaseModel):
     app_id: int = APP_ID
     published_file_id: int = ITEM_ID
     content_folder: Path
+    preview_file: Path
     change_note: str
     description: str
 
-    @field_validator("content_folder", "change_note", "description")
+    @field_validator("content_folder", "preview_file", "change_note", "description")
     @classmethod
     def check_vdf_safe(cls, value: str | Path) -> str | Path:
         text = value.as_posix() if isinstance(value, Path) else value
@@ -53,8 +54,9 @@ class WorkshopItem(BaseModel):
         return value
 
     def dump_vdf(self) -> str:
-        fields = self.model_dump(by_alias=True)
+        fields = self.model_dump(by_alias=True, exclude_none=True)
         fields["contentfolder"] = self.content_folder.as_posix()
+        fields["previewfile"] = self.preview_file.as_posix()
         body = "\n".join(f'\t"{key}" "{value}"' for key, value in fields.items())
         return f'"workshopitem"\n{{\n{body}\n}}\n'
 
@@ -62,7 +64,7 @@ class WorkshopItem(BaseModel):
 class GithubAsset(BaseModel):
     name: str
     browser_download_url: HttpUrl
-    digest: str  # e.g. "sha256:abc123..."
+    digest: str
 
 
 class GithubRelease(BaseModel):
@@ -121,7 +123,6 @@ def extract_release_zip(release: GithubRelease, target_directory: Path) -> Path:
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
         archive.extractall(target_directory)
 
-    # The zip has the mod folder at its root, and Steam needs that folder itself
     folders = list(target_directory.iterdir())
     if len(folders) != 1:
         raise ValueError(f"Expected one mod folder in {asset.name}")
@@ -202,8 +203,12 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as temp:
         temp_directory = Path(temp)
         mod_directory = extract_release_zip(release, temp_directory / "content")
+        preview_file = mod_directory / "About/Preview.png"
+        if not preview_file.exists():
+            raise SystemExit(f"No About/Preview.png in {release.tag_name}")
         workshop_item = WorkshopItem(
             content_folder=mod_directory,
+            preview_file=preview_file,
             change_note=change_note,
             description=description,
         )
