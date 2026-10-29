@@ -26,7 +26,9 @@ REPO = "ddbb07/CELoadoutQualityControls"
 STEAM_USER = "ddbb07"
 APP_ID = 294100
 ROOT = Path(__file__).parent.parent
-ITEM_ID = int((ROOT / "data/About/PublishedFileId.txt").read_text().strip())
+ITEM_ID = int(
+    (ROOT / "data/About/PublishedFileId.txt").read_text(encoding="utf-8").strip()
+)
 DESCRIPTION = "steam/description.bbcode"
 
 
@@ -128,7 +130,9 @@ def extract_release_zip(release: GithubRelease, target_directory: Path) -> Path:
 
 def hash_files(directory: Path) -> dict[str, str]:
     return {
-        path.relative_to(directory).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+        path.relative_to(directory).as_posix(): hashlib.sha256(
+            path.read_bytes()
+        ).hexdigest()
         for path in directory.rglob("*")
         if path.is_file()
     }
@@ -147,7 +151,9 @@ def print_file_changes(old_directory: Path, new_directory: Path) -> None:
 
 
 def read_mod_version(mod_directory: Path) -> str:
-    version = ElementTree.parse(mod_directory / "About/About.xml").findtext("modVersion")
+    version = ElementTree.parse(mod_directory / "About/About.xml").findtext(
+        "modVersion"
+    )
     if not version:
         raise ValueError(f"No modVersion in {mod_directory}")
     return version
@@ -160,7 +166,7 @@ def version_key(version: str) -> tuple[int, ...]:
 def run_steamcmd(*arguments: str) -> None:
     command = ["steamcmd", *arguments, "+exit"]
     output = ""
-    with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as process:
+    with subprocess.Popen(command, stdout=subprocess.PIPE, encoding="utf-8") as process:
         assert process.stdout is not None
         while char := process.stdout.read(1):
             print(char, end="", flush=True)
@@ -228,7 +234,7 @@ def main() -> None:
             raise SystemExit("Aborted")
 
         vdf_path = temp_directory / "workshop_item.vdf"
-        vdf_path.write_text(workshop_item.dump_vdf())
+        vdf_path.write_text(workshop_item.dump_vdf(), encoding="utf-8")
         run_steamcmd("+login", STEAM_USER, "+workshop_build_item", str(vdf_path))
 
 
