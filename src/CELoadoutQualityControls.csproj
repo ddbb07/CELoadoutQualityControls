@@ -1,0 +1,69 @@
+<Project>
+
+	<PropertyGroup>
+		<RimWorldVersions>1.6</RimWorldVersions>
+		<_RimWorldDispatch Condition="'$(RimWorldVersion)' == ''">true</_RimWorldDispatch>
+		<RimWorldVersion Condition="'$(RimWorldVersion)' == ''">1.6</RimWorldVersion>
+		<BaseIntermediateOutputPath>obj/$(RimWorldVersion)/</BaseIntermediateOutputPath>
+		<BaseOutputPath>bin/$(RimWorldVersion)/</BaseOutputPath>
+	</PropertyGroup>
+
+	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+	<PropertyGroup Condition="'$(RimWorldVersion)' == '1.6'">
+		<TargetFramework>net472</TargetFramework>
+		<RimWorldRefVersion>1.6.4871</RimWorldRefVersion>
+		<CombatExtendedVersion>1.6.7.4.0</CombatExtendedVersion>
+		<CombatExtendedSha256>29b75a55bfb2935ba4cbe85a0cb312490f4a100c1dd1d2e59bce31ef3d0df35a</CombatExtendedSha256>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<LangVersion>14</LangVersion>
+		<DefineConstants>$(DefineConstants);RIMWORLD_$(RimWorldVersion.Replace('.', '_'))</DefineConstants>
+		<DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes>
+
+		<ModDataDir>../data/</ModDataDir>
+		<ModOutDir>../out/$(MSBuildProjectName)/</ModOutDir>
+
+		<CombatExtendedDir>$(BaseIntermediateOutputPath)CombatExtended/$(CombatExtendedVersion)/</CombatExtendedDir>
+		<CombatExtendedDll>$(CombatExtendedDir)CombatExtended/Assemblies/CombatExtended.dll</CombatExtendedDll>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Krafs.Rimworld.Ref" Version="$(RimWorldRefVersion)" />
+		<Reference Include="CombatExtended" HintPath="$(CombatExtendedDll)" Private="false" />
+	</ItemGroup>
+
+	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+	<PropertyGroup Condition="'$(_RimWorldDispatch)' == 'true'">
+		<BuildDependsOn>Package</BuildDependsOn>
+	</PropertyGroup>
+
+	<Target Name="FetchCombatExtended" BeforeTargets="ResolveAssemblyReferences" Condition="!Exists('$(CombatExtendedDll)')">
+		<DownloadFile SourceUrl="https://github.com/CombatExtended-Continued/CombatExtended/releases/download/v$(CombatExtendedVersion)/CombatExtended-v$(CombatExtendedVersion).zip" DestinationFolder="$(CombatExtendedDir)" Retries="3">
+			<Output TaskParameter="DownloadedFile" PropertyName="_CombatExtendedZip" />
+		</DownloadFile>
+		<VerifyFileHash File="$(_CombatExtendedZip)" Hash="$(CombatExtendedSha256)" />
+		<Unzip SourceFiles="$(_CombatExtendedZip)" DestinationFolder="$(CombatExtendedDir)" Include="CombatExtended/Assemblies/CombatExtended.dll" />
+		<Delete Files="$(_CombatExtendedZip)" />
+	</Target>
+
+	<Target Name="Package">
+		<ItemGroup>
+			<_RimWorldVersion Include="$(RimWorldVersions)" />
+			<_RimWorldBuild Include="$(MSBuildProjectFullPath)" AdditionalProperties="RimWorldVersion=%(_RimWorldVersion.Identity)" RimWorldVersion="%(_RimWorldVersion.Identity)" />
+			<_ModData Include="$(ModDataDir)**" />
+		</ItemGroup>
+
+		<MSBuild Projects="@(_RimWorldBuild)" Targets="Restore" Properties="MSBuildRestoreSessionId=$([System.Guid]::NewGuid())" />
+		<MSBuild Projects="@(_RimWorldBuild)" Targets="Build">
+			<Output TaskParameter="TargetOutputs" ItemName="_ModAssembly" />
+		</MSBuild>
+
+		<RemoveDir Directories="$(ModOutDir)" />
+		<Copy SourceFiles="@(_ModData)" DestinationFolder="$(ModOutDir)%(RecursiveDir)" />
+		<Copy SourceFiles="@(_ModAssembly)" DestinationFolder="$(ModOutDir)%(RimWorldVersion)/Assemblies/" />
+	</Target>
+
+</Project>

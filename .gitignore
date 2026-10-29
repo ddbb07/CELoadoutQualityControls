@@ -1,0 +1,6 @@
+# Build
+src/bin/
+src/obj/
+
+# Packaged
+/out/
