@@ -100,12 +100,19 @@ internal static class Utility_HoldTracker_GetExcessEquipment
     {
         Loadout loadout = pawn.GetLoadout();
         if (
-            !__result
-            && !loadout.defaultLoadout
-            && loadout.dropUndefined
-            && !loadout.adHoc
-            && pawn.equipment?.Primary is { } primary
-            && !pawn.IsItemQuestLocked(primary)
+            __result
+            || loadout == null
+            || loadout.defaultLoadout
+            || !loadout.dropUndefined
+            || loadout.adHoc
+            || pawn.equipment?.Primary is not { } primary
+        )
+        {
+            return;
+        }
+
+        if (
+            !pawn.IsItemQuestLocked(primary)
             && !pawn.IsForced(primary)
             && (!loadout.AllowsQuality(primary) || !loadout.AllowsHitPoints(primary))
         )
