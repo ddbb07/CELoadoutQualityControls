@@ -74,4 +74,17 @@
 		<Copy SourceFiles="@(_ModAssembly)" DestinationFolder="$(ModOutDir)%(RimWorldVersion)/Assemblies/" />
 	</Target>
 
+	<Target Name="Zip" DependsOnTargets="ReadModVersion;Package">
+		<PropertyGroup>
+			<_ModZipStageDir>$(BaseIntermediateOutputPath)zip/</_ModZipStageDir>
+		</PropertyGroup>
+		<ItemGroup>
+			<_ModFile Include="$(ModOutDir)**" />
+		</ItemGroup>
+
+		<RemoveDir Directories="$(_ModZipStageDir)" />
+		<Copy SourceFiles="@(_ModFile)" DestinationFolder="$(_ModZipStageDir)$(MSBuildProjectName)/%(RecursiveDir)" />
+		<ZipDirectory SourceDirectory="$(_ModZipStageDir)" DestinationFile="../out/$(MSBuildProjectName)-v$(Version).zip" Overwrite="true" />
+	</Target>
+
 </Project>
