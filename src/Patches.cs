@@ -116,6 +116,63 @@ internal static class Utility_HoldTracker_GetExcessEquipment
     }
 }
 
+[HarmonyPatch]
+internal static class Utility_HoldTracker_GetExcessThing
+{
+    private static readonly MethodBase Target = AccessTools.Method(
+        "CombatExtended.Utility_HoldTracker:GetExcessThing"
+    );
+
+    private static bool Prepare()
+    {
+        if (Target == null)
+        {
+            Log.Error(
+                "[CE Loadout Quality Controls] Could not find Utility_HoldTracker.GetExcessThing"
+            );
+        }
+        return Target != null;
+    }
+
+    private static MethodBase TargetMethod() => Target;
+
+    private static void Postfix(
+        Pawn pawn,
+        ref Thing dropThing,
+        ref int dropCount,
+        ref bool __result
+    )
+    {
+        Loadout loadout = pawn.GetLoadout();
+        if (
+            __result
+            || loadout == null
+            || loadout.defaultLoadout
+            || !loadout.dropUndefined
+            || pawn.inventory?.innerContainer is not { } container
+        )
+        {
+            return;
+        }
+
+        foreach (Thing thing in container)
+        {
+            Thing inner = thing.GetInnerIfMinified();
+            if (
+                !pawn.IsItemQuestLocked(thing)
+                && !pawn.IsForced(thing)
+                && (!loadout.AllowsQuality(inner) || !loadout.AllowsHitPoints(inner))
+            )
+            {
+                dropThing = thing;
+                dropCount = thing.stackCount;
+                __result = true;
+                return;
+            }
+        }
+    }
+}
+
 [HarmonyPatch(typeof(Dialog_ManageLoadouts), nameof(Dialog_ManageLoadouts.DoWindowContents))]
 internal static class Dialog_ManageLoadouts_DoWindowContents
 {
