@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+using System.Linq;
 using System.Runtime.CompilerServices;
 using CombatExtended;
 using RimWorld;
@@ -37,4 +38,8 @@ public static class LoadoutQuality
             .hitPointsRange.IncludesEpsilon(
                 Mathf.Clamp01(GenMath.RoundedHundredth(thing.HitPoints / (float)thing.MaxHitPoints))
             );
+
+    public static bool IsForced(this Pawn pawn, Thing thing) =>
+        LoadoutManager.GetHoldRecords(pawn)?.Any(r => r.count >= 1 && r.thingDef == thing.def)
+        ?? false;
 }

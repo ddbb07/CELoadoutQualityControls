@@ -106,6 +106,7 @@ internal static class Utility_HoldTracker_GetExcessEquipment
             && !loadout.adHoc
             && pawn.equipment?.Primary is { } primary
             && !pawn.IsItemQuestLocked(primary)
+            && !pawn.IsForced(primary)
             && (!loadout.AllowsQuality(primary) || !loadout.AllowsHitPoints(primary))
         )
         {
