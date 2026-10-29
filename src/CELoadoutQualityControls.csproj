@@ -50,6 +50,13 @@
 		<Delete Files="$(_CombatExtendedZip)" />
 	</Target>
 
+	<Target Name="ReadModVersion" BeforeTargets="GetAssemblyVersion">
+		<XmlPeek XmlInputPath="$(ModDataDir)About/About.xml" Query="/ModMetaData/modVersion/text()">
+			<Output TaskParameter="Result" PropertyName="Version" />
+		</XmlPeek>
+		<Error Condition="'$(Version)' == ''" Text="No modVersion in $(ModDataDir)About/About.xml" />
+	</Target>
+
 	<Target Name="Package">
 		<ItemGroup>
 			<_RimWorldVersion Include="$(RimWorldVersions)" />
