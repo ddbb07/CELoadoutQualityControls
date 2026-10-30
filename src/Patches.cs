@@ -38,30 +38,33 @@ internal static class Loadout_Copy
 }
 
 [HarmonyPatch]
-internal static class JobGiver_UpdateLoadout_FindPickup_Search
+internal static class JobGiver_UpdateLoadout_FindPickup
 {
-    private static readonly MethodBase Target = typeof(JobGiver_UpdateLoadout)
-        .GetNestedTypes(AccessTools.all)
-        .SelectMany(AccessTools.GetDeclaredMethods)
-        .FirstOrDefault(m =>
-            m.Name.Contains("<FindPickup>")
-            && PatchProcessor
-                .ReadMethodBody(m)
-                .Any(i => i.Value is MethodInfo { Name: "AllowedByFoodRestriction" })
-        );
+    private static readonly MethodBase[] FindItem =
+    [
+        .. typeof(JobGiver_UpdateLoadout)
+            .GetNestedTypes(AccessTools.all)
+            .SelectMany(AccessTools.GetDeclaredMethods)
+            .Where(m =>
+                m.Name.Contains("<FindPickup>")
+                && PatchProcessor
+                    .ReadMethodBody(m)
+                    .Any(i => i.Value is MethodInfo { Name: "GetInnerIfMinified" })
+            ),
+    ];
 
     private static bool Prepare()
     {
-        if (Target == null)
+        if (FindItem.Length != 2)
         {
             Log.Error(
-                "[CE Loadout Quality Controls] Could not find the item search in JobGiver_UpdateLoadout.FindPickup"
+                "[CE Loadout Quality Controls] Could not find findItem in JobGiver_UpdateLoadout.FindPickup"
             );
         }
-        return Target != null;
+        return FindItem.Length == 2;
     }
 
-    private static MethodBase TargetMethod() => Target;
+    private static IEnumerable<MethodBase> TargetMethods() => FindItem;
 
     private static void Postfix(Thing __0, Pawn ___pawn, ref bool __result)
     {
