@@ -2,9 +2,9 @@
 
 ## Overview
 
-Adds quality and hp controls to Combat Extended's loadouts. The controls apply to the entire loadout, like vanilla's apparel policies. You can't set them for items individually.
+Adds quality and HP controls to Combat Extended's loadouts. The controls apply to the entire loadout, like vanilla's apparel policies. You can't set them for items individually.
 
-Both controls only apply to weapons, so any other items like ammo, medicine and food remain unfiltered.
+Both controls only apply to weapons. Any other items like ammo, medicine and food remain unfiltered.
 
 ## Installation
 
@@ -16,7 +16,9 @@ It's safe to install and remove mid-game.
 
 ## Compatibility
 
-Currently no known compatibility issues. Please report if you find any.
+This mod will cause desync when used with Multiplayer. To what extent the desync will cause issues is untested.
+
+Currently no other known compatibility issues. Please report any you find.
 
 ## Limitations
 
@@ -24,7 +26,9 @@ The mod currently doesn't store the ranges if you save your loadout to a file. I
 
 ## How to build
 
-You need the dotnet 10 sdk to build. It automatically downloads the dependencies, so this can build completely standalone from the game.
+You need the .NET 10.0 SDK to build. It automatically downloads the dependencies, so this can build completely standalone from the game.
+
+Building the preview image requires rsvg-convert and the Inter Display font to be installed. The regular build works fine without them and just skips the image, but the packaging to zip explicitly exits when they're missing.
 
 Build outputs to `out/`.
 
@@ -32,9 +36,15 @@ Build outputs to `out/`.
 dotnet build src
 ```
 
+Package the output into a versioned zip file. It also ends up in `out/`.
+
+```Shell
+dotnet build src -t:Zip
+```
+
 ## Inspiration
 
-Approach was based on [PirateBY's ExtendedLoadout](https://github.com/bananasss00/RW-CombatExtended_ExtendedLoadout), thank you so much!
+Implementation was inspired by [PirateBY's ExtendedLoadout](https://github.com/bananasss00/RW-CombatExtended_ExtendedLoadout). Thank you to PirateBY for creating it!
 
 ## License
 
